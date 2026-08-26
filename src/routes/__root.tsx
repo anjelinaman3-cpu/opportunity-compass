@@ -7,10 +7,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -77,16 +78,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Forge — Student Opportunity Discovery" },
+      { name: "description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
+      { name: "author", content: "Forge" },
+      { property: "og:title", content: "Forge — Student Opportunity Discovery" },
+      { property: "og:description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@forge" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -114,12 +121,118 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function Header() {
+  const [session, setSession] = useState<null | { user?: { email?: string } }>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const navLinkClass = "text-sm text-muted-foreground hover:text-foreground transition-colors";
+  const activeNavClass = "text-sm text-foreground font-medium";
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-line bg-background/85 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 h-16 flex items-center gap-6">
+        <Link to="/" className="flex items-center gap-2.5">
+          <span className="grid size-8 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">F</span>
+          <span className="font-display font-semibold tracking-tight text-lg text-foreground">
+            FORGE<span className="text-primary">/</span>
+          </span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-7">
+          <Link to="/" activeProps={{ className: activeNavClass }} className={navLinkClass}>
+            Discover
+          </Link>
+          <Link to="/saved" activeProps={{ className: activeNavClass }} className={navLinkClass}>
+            Saved
+          </Link>
+          <Link to="/profile" activeProps={{ className: activeNavClass }} className={navLinkClass}>
+            Profile
+          </Link>
+        </nav>
+
+        <div className="flex-1" />
+
+        <div className="hidden sm:flex items-center gap-3">
+          {session ? (
+            <>
+              <span className="text-xs text-muted-foreground font-mono truncate max-w-[160px]">
+                {session.user?.email}
+              </span>
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="h-9 px-4 rounded-md border border-line text-sm font-display font-medium text-foreground hover:border-muted-foreground transition"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="h-9 px-4 rounded-md border border-line text-sm font-display font-medium text-foreground hover:border-muted-foreground transition flex items-center"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "signup" }}
+                className="h-9 px-4 rounded-md bg-primary text-sm font-display font-semibold text-primary-foreground hover:brightness-110 transition flex items-center"
+              >
+                Get started
+              </Link>
+            </>
+          )}
+        </div>
+
+        <button
+          className="md:hidden p-2 text-muted-foreground"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          <svg className="size-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t border-line bg-background px-5 py-4 space-y-3">
+          <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
+            Discover
+          </Link>
+          <Link to="/saved" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
+            Saved
+          </Link>
+          <Link to="/profile" className="block text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
+            Profile
+          </Link>
+          {!session && (
+            <Link to="/auth" className="block text-sm text-primary" onClick={() => setMobileOpen(false)}>
+              Sign in
+            </Link>
+          )}
+        </div>
+      )}
+    </header>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Header />
       <Outlet />
     </QueryClientProvider>
   );
