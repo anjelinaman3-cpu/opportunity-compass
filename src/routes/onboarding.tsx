@@ -233,14 +233,14 @@ function OnboardingPage() {
               STEP {step + 1}/{steps.length}
             </span>
             <h1 className="mt-1 font-display font-bold text-3xl tracking-tight text-foreground">
-              {steps[step].title}
+              {steps[step]!.title}
             </h1>
-            <p className="mt-1 text-muted-foreground">{steps[step].subtitle}</p>
+            <p className="mt-1 text-muted-foreground">{steps[step]!.subtitle}</p>
           </div>
         </div>
 
         <div className="rounded-xl border border-line bg-card p-6">
-          {steps[step].content}
+          {steps[step]!.content}
           {error && <p className="mt-4 text-sm text-primary">{error}</p>}
           <div className="mt-8 flex justify-between">
             <button
