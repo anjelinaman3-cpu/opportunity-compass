@@ -9,7 +9,7 @@ const categoryConfig = [
   { key: "grant", label: "Grants", color: "text-primary" },
 ];
 
-export function CategoryStrip({ opportunities }: { opportunities: Tables<"opportunities">[] }) {
+export function CategoryStrip({ opportunities }: { opportunities: { type?: string | null }[] }) {
   const counts = opportunities.reduce<Record<string, number>>((acc, opp) => {
     const key = (opp.type ?? "").toLowerCase();
     acc[key] = (acc[key] ?? 0) + 1;
