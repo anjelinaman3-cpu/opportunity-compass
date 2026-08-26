@@ -173,7 +173,7 @@ function Index() {
         {isLoading ? (
           <CategoryStrip opportunities={[]} />
         ) : (
-          <CategoryStrip opportunities={(opportunities ?? []) as { type?: string | null }[]} />
+          <CategoryStrip opportunities={opportunities ?? []} />
         )}
       </div>
 
