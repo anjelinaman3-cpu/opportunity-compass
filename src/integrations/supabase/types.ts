@@ -14,7 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      opportunities: {
+        Row: {
+          certificate: boolean | null
+          created_at: string
+          deadline_at: string | null
+          description: string | null
+          eligibility: string[] | null
+          ends_at: string | null
+          host: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          mode: string | null
+          prize: string | null
+          published: boolean | null
+          skills: string[] | null
+          starts_at: string | null
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          certificate?: boolean | null
+          created_at?: string
+          deadline_at?: string | null
+          description?: string | null
+          eligibility?: string[] | null
+          ends_at?: string | null
+          host?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          mode?: string | null
+          prize?: string | null
+          published?: boolean | null
+          skills?: string[] | null
+          starts_at?: string | null
+          title: string
+          type: string
+          url?: string | null
+        }
+        Update: {
+          certificate?: boolean | null
+          created_at?: string
+          deadline_at?: string | null
+          description?: string | null
+          eligibility?: string[] | null
+          ends_at?: string | null
+          host?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          mode?: string | null
+          prize?: string | null
+          published?: boolean | null
+          skills?: string[] | null
+          starts_at?: string | null
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          education_level: string | null
+          eligibility: string[] | null
+          experience_level: string | null
+          field_of_study: string | null
+          id: string
+          interests: string[] | null
+          location: string | null
+          onboarding_complete: boolean | null
+          skills: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          education_level?: string | null
+          eligibility?: string[] | null
+          experience_level?: string | null
+          field_of_study?: string | null
+          id?: string
+          interests?: string[] | null
+          location?: string | null
+          onboarding_complete?: boolean | null
+          skills?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          education_level?: string | null
+          eligibility?: string[] | null
+          experience_level?: string | null
+          field_of_study?: string | null
+          id?: string
+          interests?: string[] | null
+          location?: string | null
+          onboarding_complete?: boolean | null
+          skills?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_opportunities: {
+        Row: {
+          created_at: string
+          id: string
+          opportunity_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          opportunity_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          opportunity_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_opportunities_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
