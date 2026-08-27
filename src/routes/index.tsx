@@ -232,6 +232,57 @@ function Index() {
           </div>
         </div>
 
+        <div className="mb-6 flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="relative flex-1">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by title, host, skill or location…"
+              aria-label="Search opportunities"
+              className="w-full h-11 rounded-md border border-line bg-card pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition"
+            />
+            <svg className="size-4 absolute left-3.5 top-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+            </svg>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              aria-label="Filter by mode"
+              className="h-11 rounded-md border border-line bg-card px-3 text-sm font-mono text-foreground focus:outline-none focus:border-primary"
+            >
+              {modeFilters.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              aria-label="Sort opportunities"
+              className="h-11 rounded-md border border-line bg-card px-3 text-sm font-mono text-foreground focus:outline-none focus:border-primary"
+            >
+              {sortOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setEligibleOnly((v) => !v)}
+              disabled={!isAuth}
+              className={`h-11 px-4 rounded-md border text-xs font-mono transition disabled:opacity-40 ${
+                eligibleOnly ? "border-primary text-primary bg-primary/10" : "border-line text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Strong matches only
+            </button>
+          </div>
+        </div>
+
+        <p className="mb-4 font-mono text-xs text-muted-foreground">
+          {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} shown
+        </p>
+
+
         {isLoading ? (
           <div className="grid md:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => (
