@@ -30,6 +30,10 @@ const sortOptions = ["Best match", "Deadline soon", "Newest"];
 function Index() {
   const [session, setSession] = useState<null | { user?: { email?: string } }>(null);
   const [filter, setFilter] = useState("All");
+  const [mode, setMode] = useState("Any mode");
+  const [sort, setSort] = useState("Best match");
+  const [query, setQuery] = useState("");
+  const [eligibleOnly, setEligibleOnly] = useState(false);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
 
   const fetchAll = useServerFn(listOpportunities);
