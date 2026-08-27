@@ -4,7 +4,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type OpportunityCardProps = {
   opportunity: Tables<"opportunities"> & { match_score?: number; saved?: boolean };
-  onToggleSave?: (id: string, save: boolean) => void | Promise<void>;
+  onToggleSave?: ((id: string, save: boolean) => void | Promise<void>) | undefined;
 };
 
 const colorMap: Record<string, { bg: string; text: string; borderHover: string }> = {

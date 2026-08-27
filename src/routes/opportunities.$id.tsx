@@ -8,34 +8,16 @@ import { formatDeadline, getCategoryColor } from "@/lib/matching";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/opportunities/$id")({
-  head: ({ loaderData }) => ({
+  head: () => ({
     meta: [
-      { title: loaderData?.opportunity ? `${loaderData.opportunity.title} — Forge` : "Opportunity — Forge" },
-      {
-        name: "description",
-        content: loaderData?.opportunity
-          ? loaderData.opportunity.description ?? "Discover student opportunities on Forge."
-          : "Discover student opportunities on Forge.",
-      },
-      {
-        property: "og:title",
-        content: loaderData?.opportunity ? loaderData.opportunity.title : "Opportunity — Forge",
-      },
-      {
-        property: "og:description",
-        content: loaderData?.opportunity
-          ? loaderData.opportunity.description ?? "Discover student opportunities on Forge."
-          : "Discover student opportunities on Forge.",
-      },
+      { title: "Opportunity — Forge" },
+      { name: "description", content: "Discover student opportunities on Forge." },
+      { property: "og:title", content: "Opportunity — Forge" },
+      { property: "og:description", content: "Discover student opportunities on Forge." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async ({ params, context }) => {
-    // Preload public opportunity data using the existing queryClient would require a server function here.
-    // We return the id; the component does the lookup.
-    return { id: params.id };
-  },
   component: OpportunityDetail,
 });
 
@@ -47,6 +29,10 @@ const colorMap: Record<string, string> = {
   primary: "bg-primary text-primary-foreground",
   success: "bg-emerald-500 text-white",
 };
+
+function getColorClass(type: string) {
+  return colorMap[getCategoryColor(type)] ?? colorMap["primary"];
+}
 
 function OpportunityDetail() {
   const { id } = useParams({ from: "/opportunities/$id" });
@@ -116,7 +102,7 @@ function OpportunityDetail() {
         </Link>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-wide ${colorMap[colorKey] ?? colorMap.primary}`}>
+          <span className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-wide ${getColorClass(opportunity.type)}`}>
             {opportunity.type}
           </span>
           {deadline.text !== "Open" && (
@@ -221,12 +207,12 @@ function OpportunityDetail() {
 
               <div className="mt-6 space-y-3">
                 <a
-                  href={opportunity.apply_url ?? "#"}
+                  href={opportunity.url ?? "#"}
                   target="_blank"
                   rel="noreferrer"
                   className="block h-11 w-full rounded-lg bg-primary text-primary-foreground font-display font-semibold text-center leading-[44px] hover:brightness-110 transition"
                 >
-                  Apply now
+                  Learn more
                 </a>
                 <button
                   onClick={handleToggleSave}
@@ -242,18 +228,6 @@ function OpportunityDetail() {
               </div>
             </div>
 
-            {opportunity.tags && opportunity.tags.length > 0 && (
-              <div className="rounded-xl border border-line bg-card p-5">
-                <h3 className="font-display font-semibold text-sm text-foreground mb-3">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {opportunity.tags.map((tag) => (
-                    <span key={tag} className="px-2.5 py-1 rounded-md border border-line text-xs text-muted-foreground">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </section>
