@@ -228,18 +228,6 @@ function OpportunityDetail() {
               </div>
             </div>
 
-            {opportunity.tags && opportunity.tags.length > 0 && (
-              <div className="rounded-xl border border-line bg-card p-5">
-                <h3 className="font-display font-semibold text-sm text-foreground mb-3">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {opportunity.tags.map((tag) => (
-                    <span key={tag} className="px-2.5 py-1 rounded-md border border-line text-xs text-muted-foreground">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </section>
