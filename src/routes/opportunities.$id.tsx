@@ -8,34 +8,16 @@ import { formatDeadline, getCategoryColor } from "@/lib/matching";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/opportunities/$id")({
-  head: ({ loaderData }) => ({
+  head: () => ({
     meta: [
-      { title: loaderData?.opportunity ? `${loaderData.opportunity.title} — Forge` : "Opportunity — Forge" },
-      {
-        name: "description",
-        content: loaderData?.opportunity
-          ? loaderData.opportunity.description ?? "Discover student opportunities on Forge."
-          : "Discover student opportunities on Forge.",
-      },
-      {
-        property: "og:title",
-        content: loaderData?.opportunity ? loaderData.opportunity.title : "Opportunity — Forge",
-      },
-      {
-        property: "og:description",
-        content: loaderData?.opportunity
-          ? loaderData.opportunity.description ?? "Discover student opportunities on Forge."
-          : "Discover student opportunities on Forge.",
-      },
+      { title: "Opportunity — Forge" },
+      { name: "description", content: "Discover student opportunities on Forge." },
+      { property: "og:title", content: "Opportunity — Forge" },
+      { property: "og:description", content: "Discover student opportunities on Forge." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: async ({ params, context }) => {
-    // Preload public opportunity data using the existing queryClient would require a server function here.
-    // We return the id; the component does the lookup.
-    return { id: params.id };
-  },
   component: OpportunityDetail,
 });
 
