@@ -207,12 +207,12 @@ function OpportunityDetail() {
 
               <div className="mt-6 space-y-3">
                 <a
-                  href={opportunity.apply_url ?? "#"}
+                  href={opportunity.url ?? "#"}
                   target="_blank"
                   rel="noreferrer"
                   className="block h-11 w-full rounded-lg bg-primary text-primary-foreground font-display font-semibold text-center leading-[44px] hover:brightness-110 transition"
                 >
-                  Apply now
+                  Learn more
                 </a>
                 <button
                   onClick={handleToggleSave}
