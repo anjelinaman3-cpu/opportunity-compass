@@ -6,10 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Forge" },
-      { name: "description", content: "Sign in or create a Forge account to discover student opportunities." },
-      { property: "og:title", content: "Sign in — Forge" },
-      { property: "og:description", content: "Sign in or create a Forge account to discover student opportunities." },
+      { title: "Sign in — SkillScout" },
+      { name: "description", content: "Sign in or create a SkillScout account to discover student opportunities." },
+      { property: "og:title", content: "Sign in — SkillScout" },
+      { property: "og:description", content: "Sign in or create a SkillScout account to discover student opportunities." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -84,7 +84,7 @@ function AuthPage() {
           <Link to="/" className="inline-flex items-center gap-2.5">
             <span className="grid size-8 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">F</span>
             <span className="font-display font-semibold tracking-tight text-xl text-foreground">
-              FORGE<span className="text-primary">/</span>
+              SKILLSCOUT<span className="text-primary">/</span>
             </span>
           </Link>
           <h1 className="mt-6 font-display font-bold text-3xl tracking-tight text-foreground">

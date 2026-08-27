@@ -12,9 +12,9 @@ import { formatDeadline } from "@/lib/matching";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Forge — Discover Student Opportunities" },
+      { title: "SkillScout — Discover Student Opportunities" },
       { name: "description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
-      { property: "og:title", content: "Forge — Discover Student Opportunities" },
+      { property: "og:title", content: "SkillScout — Discover Student Opportunities" },
       { property: "og:description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -83,7 +83,7 @@ function Index() {
               that's <span className="text-primary">built for you.</span>
             </h1>
             <p className="mt-5 max-w-xl text-muted-foreground text-base sm:text-lg leading-relaxed">
-              Forge reads your skills, your level, and your goals — then surfaces the hackathons,
+              SkillScout reads your skills, your level, and your goals — then surfaces the hackathons,
               competitions, courses, and workshops that will actually move your career forward.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">

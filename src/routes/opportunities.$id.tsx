@@ -10,10 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/opportunities/$id")({
   head: () => ({
     meta: [
-      { title: "Opportunity — Forge" },
-      { name: "description", content: "Discover student opportunities on Forge." },
-      { property: "og:title", content: "Opportunity — Forge" },
-      { property: "og:description", content: "Discover student opportunities on Forge." },
+      { title: "Opportunity — SkillScout" },
+      { name: "description", content: "Discover student opportunities on SkillScout." },
+      { property: "og:title", content: "Opportunity — SkillScout" },
+      { property: "og:description", content: "Discover student opportunities on SkillScout." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -10,9 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/saved")({
   head: () => ({
     meta: [
-      { title: "Saved opportunities — Forge" },
+      { title: "Saved opportunities — SkillScout" },
       { name: "description", content: "Your saved hackathons, competitions, courses, and workshops." },
-      { property: "og:title", content: "Saved opportunities — Forge" },
+      { property: "og:title", content: "Saved opportunities — SkillScout" },
       { property: "og:description", content: "Your saved hackathons, competitions, courses, and workshops." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

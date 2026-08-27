@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Forge — Student Opportunity Discovery" },
+      { title: "SkillScout — Student Opportunity Discovery" },
       { name: "description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
-      { name: "author", content: "Forge" },
-      { property: "og:title", content: "Forge — Student Opportunity Discovery" },
+      { name: "author", content: "SkillScout" },
+      { property: "og:title", content: "SkillScout — Student Opportunity Discovery" },
       { property: "og:description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@forge" },
+      { name: "twitter:site", content: "@skillscout" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -142,9 +142,9 @@ function Header() {
     <header className="sticky top-0 z-30 border-b border-line bg-background/85 backdrop-blur">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 h-16 flex items-center gap-6">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">F</span>
+          <span className="grid size-8 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">S</span>
           <span className="font-display font-semibold tracking-tight text-lg text-foreground">
-            FORGE<span className="text-primary">/</span>
+            SKILLSCOUT<span className="text-primary">/</span>
           </span>
         </Link>
 

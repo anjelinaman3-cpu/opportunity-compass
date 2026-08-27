@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your profile — Forge" },
+      { title: "Set up your profile — SkillScout" },
       { name: "description", content: "Tell us about your skills and interests to get personalized opportunity matches." },
-      { property: "og:title", content: "Set up your profile — Forge" },
+      { property: "og:title", content: "Set up your profile — SkillScout" },
       { property: "og:description", content: "Tell us about your skills and interests to get personalized opportunity matches." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
