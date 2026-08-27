@@ -9,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Your profile — Forge" },
+      { title: "Your profile — SkillScout" },
       { name: "description", content: "Manage your skills, interests, and eligibility to improve your opportunity matches." },
-      { property: "og:title", content: "Your profile — Forge" },
+      { property: "og:title", content: "Your profile — SkillScout" },
       { property: "og:description", content: "Manage your skills, interests, and eligibility to improve your opportunity matches." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

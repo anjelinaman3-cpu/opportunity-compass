@@ -12,9 +12,9 @@ import { formatDeadline } from "@/lib/matching";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Forge — Discover Student Opportunities" },
+      { title: "SkillScout — Discover Student Opportunities" },
       { name: "description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
-      { property: "og:title", content: "Forge — Discover Student Opportunities" },
+      { property: "og:title", content: "SkillScout — Discover Student Opportunities" },
       { property: "og:description", content: "Personalized hackathons, competitions, courses, and workshops for students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -23,11 +23,17 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const categoryFilters = ["All", "Hackathon", "Competition", "Course", "Workshop", "Mentorship", "Grant"];
+const categoryFilters = ["All", "Hackathon", "Internship", "Competition", "Course", "Workshop", "Mentorship", "Grant"];
+const modeFilters = ["Any mode", "remote", "hybrid", "onsite"];
+const sortOptions = ["Best match", "Deadline soon", "Newest"];
 
 function Index() {
   const [session, setSession] = useState<null | { user?: { email?: string } }>(null);
   const [filter, setFilter] = useState("All");
+  const [mode, setMode] = useState("Any mode");
+  const [sort, setSort] = useState("Best match");
+  const [query, setQuery] = useState("");
+  const [eligibleOnly, setEligibleOnly] = useState(false);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
 
   const fetchAll = useServerFn(listOpportunities);
@@ -48,10 +54,33 @@ function Index() {
     queryFn: () => (isAuth ? fetchRecommended() : fetchAll()),
   });
 
-  const filtered = (opportunities ?? []).filter((opp) => {
-    if (filter === "All") return true;
-    return opp.type?.toLowerCase() === filter.toLowerCase();
-  });
+  const q = query.trim().toLowerCase();
+  const filtered = (opportunities ?? [])
+    .filter((opp) => {
+      if (filter !== "All" && opp.type?.toLowerCase() !== filter.toLowerCase()) return false;
+      if (mode !== "Any mode" && (opp.mode ?? "").toLowerCase() !== mode) return false;
+      if (eligibleOnly && ((opp as { match_score?: number }).match_score ?? 0) < 60) return false;
+      if (q) {
+        const haystack = [opp.title, opp.host, opp.description, opp.location, ...(opp.skills ?? [])]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "Deadline soon") {
+        const at = a.deadline_at ? new Date(a.deadline_at).getTime() : Infinity;
+        const bt = b.deadline_at ? new Date(b.deadline_at).getTime() : Infinity;
+        return at - bt;
+      }
+      if (sort === "Newest") {
+        return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+      }
+      return ((b as { match_score?: number }).match_score ?? 0) - ((a as { match_score?: number }).match_score ?? 0);
+    });
+
 
   const featured = opportunities?.[0];
 
@@ -83,7 +112,7 @@ function Index() {
               that's <span className="text-primary">built for you.</span>
             </h1>
             <p className="mt-5 max-w-xl text-muted-foreground text-base sm:text-lg leading-relaxed">
-              Forge reads your skills, your level, and your goals — then surfaces the hackathons,
+              SkillScout reads your skills, your level, and your goals — then surfaces the hackathons,
               competitions, courses, and workshops that will actually move your career forward.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -202,6 +231,57 @@ function Index() {
             ))}
           </div>
         </div>
+
+        <div className="mb-6 flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="relative flex-1">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by title, host, skill or location…"
+              aria-label="Search opportunities"
+              className="w-full h-11 rounded-md border border-line bg-card pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition"
+            />
+            <svg className="size-4 absolute left-3.5 top-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+            </svg>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              aria-label="Filter by mode"
+              className="h-11 rounded-md border border-line bg-card px-3 text-sm font-mono text-foreground focus:outline-none focus:border-primary"
+            >
+              {modeFilters.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              aria-label="Sort opportunities"
+              className="h-11 rounded-md border border-line bg-card px-3 text-sm font-mono text-foreground focus:outline-none focus:border-primary"
+            >
+              {sortOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setEligibleOnly((v) => !v)}
+              disabled={!isAuth}
+              className={`h-11 px-4 rounded-md border text-xs font-mono transition disabled:opacity-40 ${
+                eligibleOnly ? "border-primary text-primary bg-primary/10" : "border-line text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Strong matches only
+            </button>
+          </div>
+        </div>
+
+        <p className="mb-4 font-mono text-xs text-muted-foreground">
+          {filtered.length} opportunit{filtered.length === 1 ? "y" : "ies"} shown
+        </p>
+
 
         {isLoading ? (
           <div className="grid md:grid-cols-3 gap-5">
