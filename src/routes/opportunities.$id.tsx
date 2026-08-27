@@ -30,6 +30,10 @@ const colorMap: Record<string, string> = {
   success: "bg-emerald-500 text-white",
 };
 
+function getColorClass(type: string) {
+  return colorMap[getCategoryColor(type)] ?? colorMap["primary"];
+}
+
 function OpportunityDetail() {
   const { id } = useParams({ from: "/opportunities/$id" });
   const fetchOpp = useServerFn(getOpportunity);
