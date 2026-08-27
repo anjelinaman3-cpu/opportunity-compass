@@ -23,7 +23,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const categoryFilters = ["All", "Hackathon", "Competition", "Course", "Workshop", "Mentorship", "Grant"];
+const categoryFilters = ["All", "Hackathon", "Internship", "Competition", "Course", "Workshop", "Mentorship", "Grant"];
+const modeFilters = ["Any mode", "remote", "hybrid", "onsite"];
+const sortOptions = ["Best match", "Deadline soon", "Newest"];
 
 function Index() {
   const [session, setSession] = useState<null | { user?: { email?: string } }>(null);
