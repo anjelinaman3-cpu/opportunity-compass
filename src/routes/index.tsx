@@ -54,10 +54,33 @@ function Index() {
     queryFn: () => (isAuth ? fetchRecommended() : fetchAll()),
   });
 
-  const filtered = (opportunities ?? []).filter((opp) => {
-    if (filter === "All") return true;
-    return opp.type?.toLowerCase() === filter.toLowerCase();
-  });
+  const q = query.trim().toLowerCase();
+  const filtered = (opportunities ?? [])
+    .filter((opp) => {
+      if (filter !== "All" && opp.type?.toLowerCase() !== filter.toLowerCase()) return false;
+      if (mode !== "Any mode" && (opp.mode ?? "").toLowerCase() !== mode) return false;
+      if (eligibleOnly && ((opp as { match_score?: number }).match_score ?? 0) < 60) return false;
+      if (q) {
+        const haystack = [opp.title, opp.host, opp.description, opp.location, ...(opp.skills ?? [])]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "Deadline soon") {
+        const at = a.deadline_at ? new Date(a.deadline_at).getTime() : Infinity;
+        const bt = b.deadline_at ? new Date(b.deadline_at).getTime() : Infinity;
+        return at - bt;
+      }
+      if (sort === "Newest") {
+        return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+      }
+      return ((b as { match_score?: number }).match_score ?? 0) - ((a as { match_score?: number }).match_score ?? 0);
+    });
+
 
   const featured = opportunities?.[0];
 
