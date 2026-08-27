@@ -1,14 +1,16 @@
-# Welcome to your Lovable project
+# Opportunity Compass
+
+Our platform is a personalized opportunity discovery website that brings hackathons, competitions, courses, workshops, and other student opportunities into one place. Students create profiles based on their skills, interests, experience, and eligibility. The platform then recommends relevant opportunities, provides match scores, filters results, tracks deadlines, and helps students discover the right opportunities without spending hours searching across multiple platforms.
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/aa5d05ee-e629-487f-b374-0cafc4a53bb7).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +22,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
