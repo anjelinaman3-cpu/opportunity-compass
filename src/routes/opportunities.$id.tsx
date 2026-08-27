@@ -102,7 +102,7 @@ function OpportunityDetail() {
         </Link>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-wide ${colorMap[colorKey] ?? colorMap.primary}`}>
+          <span className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-wide ${getColorClass(opportunity.type)}`}>
             {opportunity.type}
           </span>
           {deadline.text !== "Open" && (
