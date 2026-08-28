@@ -5,10 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system: Neon Terminal.
+ * Design system: Clean Campus.
  *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes. The :root block defines the dark palette used across the app.
+ * Light, professional palette for a student career platform.
+ * Off-white surfaces, dark slate text, one blue accent.
  * Web fonts are loaded via <link> in src/routes/__root.tsx.
  */
 
@@ -55,80 +55,60 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Neon Terminal palette */
-  --color-ink: #0a0a0b;
-  --color-ink-soft: #131316;
-  --color-surface: #141418;
-  --color-line: #26262c;
-  --color-neon: #c9f24b;
-  --color-cyan: #4fe0e8;
-  --color-violet: #9a7bff;
-  --color-amber: #ff9e57;
-  --color-mute: #8a8a93;
+  /* Clean Campus palette */
+  --color-ink: #0f172a;
+  --color-ink-soft: #334155;
+  --color-surface: #ffffff;
+  --color-line: #e4e7ec;
+  --color-neon: #2563eb;
+  --color-cyan: #0f766e;
+  --color-violet: #6d28d9;
+  --color-amber: #b45309;
+  --color-mute: #64748b;
+  --color-success: #15803d;
 
   --font-sans: "Inter", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Inter", sans-serif;
+  --font-mono: "Inter", sans-serif;
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
-  --background: #0a0a0b;
-  --foreground: #ffffff;
-  --card: #141418;
-  --card-foreground: #ffffff;
-  --popover: #131316;
-  --popover-foreground: #ffffff;
-  --primary: #c9f24b;
-  --primary-foreground: #0a0a0b;
-  --secondary: #131316;
-  --secondary-foreground: #ffffff;
-  --muted: #26262c;
-  --muted-foreground: #8a8a93;
-  --accent: #c9f24b;
-  --accent-foreground: #0a0a0b;
-  --destructive: #ef4444;
+  --background: #f7f8fa;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eff4ff;
+  --accent-foreground: #1d4ed8;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #26262c;
-  --input: #26262c;
-  --ring: #c9f24b;
-  --chart-1: #c9f24b;
-  --chart-2: #4fe0e8;
-  --chart-3: #9a7bff;
-  --chart-4: #ff9e57;
-  --chart-5: #ffffff;
-  --sidebar: #0a0a0b;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #c9f24b;
-  --sidebar-primary-foreground: #0a0a0b;
-  --sidebar-accent: #131316;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #26262c;
-  --sidebar-ring: #c9f24b;
+  --border: #e4e7ec;
+  --input: #e4e7ec;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #0f766e;
+  --chart-3: #6d28d9;
+  --chart-4: #b45309;
+  --chart-5: #64748b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e4e7ec;
+  --sidebar-ring: #2563eb;
 }
 
-.dark {
-  --background: #0a0a0b;
-  --foreground: #ffffff;
-  --card: #141418;
-  --card-foreground: #ffffff;
-  --popover: #131316;
-  --popover-foreground: #ffffff;
-  --primary: #c9f24b;
-  --primary-foreground: #0a0a0b;
-  --secondary: #131316;
-  --secondary-foreground: #ffffff;
-  --muted: #26262c;
-  --muted-foreground: #8a8a93;
-  --accent: #c9f24b;
-  --accent-foreground: #0a0a0b;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #26262c;
-  --input: #26262c;
-  --ring: #c9f24b;
-}
 
 @layer base {
   * {
