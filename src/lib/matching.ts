@@ -86,3 +86,84 @@ export function formatDeadline(date: string | null): { text: string; urgent: boo
   if (days <= 30) return { text: `Closes in ${days} days`, urgent: false };
   return { text: deadline.toLocaleDateString("en-US", { month: "short", day: "numeric" }), urgent: false };
 }
+
+export type MatchReason = { kind: "good" | "warn"; text: string };
+
+const LEVEL_HINT: Record<string, string[]> = {
+  beginner: ["beginner", "no-experience", "high-school", "undergraduate"],
+  intermediate: ["undergraduate", "graduate", "team-based"],
+  advanced: ["graduate", "recent-grad"],
+};
+
+function pretty(value: string) {
+  return value
+    .split(/[-_\s]+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/** Human-readable explanation of why an opportunity matches a student profile. */
+export function explainMatch(
+  opportunity: Pick<Opportunity, "skills" | "eligibility" | "type">,
+  profile: {
+    skills?: string[] | null;
+    interests?: string[] | null;
+    eligibility?: string[] | null;
+    experience_level?: string | null;
+  } | null
+): MatchReason[] {
+  if (!profile) return [];
+
+  const oppSkills = (opportunity.skills ?? []).map((s) => s.toLowerCase());
+  const oppEligibility = (opportunity.eligibility ?? []).map((s) => s.toLowerCase());
+  const mySkills = (profile.skills ?? []).map((s) => s.toLowerCase());
+  const myInterests = (profile.interests ?? []).map((s) => s.toLowerCase());
+  const myEligibility = (profile.eligibility ?? []).map((s) => s.toLowerCase());
+
+  const reasons: MatchReason[] = [];
+
+  const skillHits = oppSkills.filter((s) => mySkills.includes(s));
+  if (skillHits.length > 0) {
+    reasons.push({
+      kind: "good",
+      text: `Your ${skillHits.slice(0, 3).map(pretty).join(", ")} skill${skillHits.length === 1 ? "" : "s"} match the requirements`,
+    });
+  }
+
+  const interestHits = oppSkills.filter((s) => myInterests.includes(s));
+  if (interestHits.length > 0) {
+    reasons.push({
+      kind: "good",
+      text: `${interestHits.slice(0, 2).map(pretty).join(" and ")} matches your interests`,
+    });
+  }
+
+  const level = (profile.experience_level ?? "").toLowerCase();
+  const levelTags = LEVEL_HINT[level] ?? [];
+  if (level) {
+    const eligibleFit = oppEligibility.length === 0 || oppEligibility.some((e) => levelTags.includes(e) || myEligibility.includes(e));
+    reasons.push(
+      eligibleFit
+        ? { kind: "good", text: `Suitable for ${level} level students` }
+        : { kind: "warn", text: `Usually aimed at ${oppEligibility.slice(0, 2).map(pretty).join(", ")} applicants` }
+    );
+  }
+
+  const missing = oppSkills.filter((s) => !mySkills.includes(s) && !myInterests.includes(s));
+  if (missing.length > 0) {
+    reasons.push({
+      kind: "warn",
+      text: `${missing.slice(0, 2).map(pretty).join(" and ")} ${missing.length === 1 ? "is" : "are"} recommended`,
+    });
+  }
+
+  if (reasons.length === 0) {
+    reasons.push({ kind: "warn", text: "Broad fit — add more skills to your profile for a sharper match" });
+  }
+
+  return reasons.slice(0, 4);
+}
+
+export function prettyLabel(value: string) {
+  return pretty(value);
+}
