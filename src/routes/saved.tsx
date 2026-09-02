@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { Bookmark } from "lucide-react";
 
-import { getSavedOpportunities, unsaveOpportunity } from "@/lib/opportunities.functions";
-import { OpportunityCard } from "@/components/OpportunityCard";
-import { supabase } from "@/integrations/supabase/client";
+import { OpportunityCard, OpportunityCardSkeleton } from "@/components/OpportunityCard";
+import { useOpportunities } from "@/lib/opportunity-service";
+import { useLocalProfile, useSavedIds } from "@/lib/local-profile";
+import { buildMatch } from "@/lib/matching";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
     meta: [
       { title: "Saved opportunities — SkillScout" },
-      { name: "description", content: "Your saved hackathons, competitions, courses, and workshops." },
+      { name: "description", content: "Every hackathon, internship, course and workshop you bookmarked, with deadlines and match scores." },
       { property: "og:title", content: "Saved opportunities — SkillScout" },
-      { property: "og:description", content: "Your saved hackathons, competitions, courses, and workshops." },
+      { property: "og:description", content: "Your shortlist of student opportunities, tracked with deadlines and match scores." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -22,79 +22,61 @@ export const Route = createFileRoute("/saved")({
 });
 
 function SavedPage() {
-  const fetchSaved = useServerFn(getSavedOpportunities);
-  const doUnsave = useServerFn(unsaveOpportunity);
-  const [saving, setSaving] = useState<Record<string, boolean>>({});
-  const [session, setSession] = useState<null | { user?: { email?: string } }>(null);
+  const { data, isLoading } = useOpportunities();
+  const { profile } = useLocalProfile();
+  const { ids, toggle } = useSavedIds();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  const { data: saved, isLoading, refetch } = useQuery({
-    queryKey: ["saved-opportunities"],
-    queryFn: () => fetchSaved(),
-    enabled: !!session,
-  });
-
-  const handleToggleSave = async (id: string, save: boolean) => {
-    if (save) return; // Only unsave on this page
-    setSaving((prev) => ({ ...prev, [id]: true }));
-    try {
-      await doUnsave({ data: { opportunityId: id } });
-      await refetch();
-    } finally {
-      setSaving((prev) => ({ ...prev, [id]: false }));
-    }
-  };
-
-  if (!session) {
-    return (
-      <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-5">
-        <div className="text-center">
-          <h1 className="font-display font-bold text-2xl text-foreground">Sign in to save opportunities</h1>
-          <p className="mt-2 text-muted-foreground">Create a profile and keep track of deadlines.</p>
-          <Link to="/auth" search={{ mode: "signup" }} className="mt-6 inline-flex h-11 px-6 rounded-lg bg-primary text-primary-foreground font-display font-semibold items-center">
-            Get started
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const saved = useMemo(() => {
+    const list = data?.opportunities ?? [];
+    return list
+      .filter((o) => ids.includes(o.id))
+      .map((o) => {
+        const match = buildMatch(o, profile);
+        return { ...o, match_score: match.score, reasons: match.reasons };
+      })
+      .sort((a, b) => b.match_score - a.match_score);
+  }, [data, ids, profile]);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="mx-auto max-w-7xl px-5 sm:px-8 pt-12 pb-16">
-        <p className="font-mono text-xs text-muted-foreground mb-1">// SAVED</p>
-        <h1 className="font-display font-bold text-3xl tracking-tight text-foreground">Your saved board</h1>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+        <header className="flex min-w-0 items-center gap-3">
+          <Bookmark className="size-6 shrink-0 text-primary" aria-hidden="true" />
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Saved opportunities</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {saved.length} bookmarked {saved.length === 1 ? "opportunity" : "opportunities"}
+            </p>
+          </div>
+        </header>
 
         {isLoading ? (
-          <div className="grid md:grid-cols-3 gap-5 mt-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-line bg-card overflow-hidden animate-pulse aspect-[16/10]" />
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <OpportunityCardSkeleton key={i} />
             ))}
           </div>
-        ) : saved && saved.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-5 mt-8">
-            {saved.map((opp) => (
-              <OpportunityCard
-                key={opp.id}
-                opportunity={{ ...opp, saved: true }}
-                onToggleSave={handleToggleSave}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-8 rounded-xl border border-line bg-card p-8 text-center">
-            <p className="text-muted-foreground">No saved opportunities yet.</p>
-            <Link to="/" className="mt-3 inline-block text-primary hover:underline text-sm">
-              Browse the feed
+        ) : saved.length === 0 ? (
+          <div className="mt-8 rounded-xl border border-border bg-card p-8 text-center">
+            <p className="font-medium text-foreground">Nothing saved yet</p>
+            <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
+              Tap the bookmark button on any opportunity to keep it here with its deadline and match score.
+            </p>
+            <Link
+              to="/feed"
+              className="btn-shine mt-5 inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Browse opportunities
             </Link>
           </div>
+        ) : (
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {saved.map((o) => (
+              <OpportunityCard key={o.id} opportunity={o} reasons={o.reasons} saved onToggleSave={toggle} />
+            ))}
+          </div>
         )}
-      </section>
+      </div>
     </main>
   );
 }
