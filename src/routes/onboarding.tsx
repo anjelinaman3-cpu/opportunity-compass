@@ -1,16 +1,25 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { completeOnboarding } from "@/lib/profiles.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
+
+import { getLocalProfile, setLocalProfile, emptyProfile, type LocalProfile } from "@/lib/local-profile";
+import { useMatchFeedback } from "@/components/MatchFeedback";
+import { fetchOpportunities } from "@/lib/opportunity-service";
+import { calculateMatchScore, prettyLabel } from "@/lib/matching";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your profile — SkillScout" },
-      { name: "description", content: "Tell us about your skills and interests to get personalized opportunity matches." },
-      { property: "og:title", content: "Set up your profile — SkillScout" },
-      { property: "og:description", content: "Tell us about your skills and interests to get personalized opportunity matches." },
+      { title: "Tell us about yourself — SkillScout" },
+      {
+        name: "description",
+        content: "Share your skills, interests and experience level so SkillScout can match you with the right student opportunities.",
+      },
+      { property: "og:title", content: "Tell us about yourself — SkillScout" },
+      {
+        property: "og:description",
+        content: "A one-minute profile that powers personalized opportunity matches with clear explanations.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -18,199 +27,151 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const availableSkills = [
-  "python",
-  "javascript",
-  "react",
-  "machine-learning",
-  "ui-design",
-  "product-management",
-  "blockchain",
-  "robotics",
-  "data-science",
-  "cybersecurity",
-  "iot",
-  "mobile",
+const SKILLS = [
+  "html", "css", "javascript", "react", "python", "java", "machine-learning", "data-science",
+  "ui-design", "figma", "product-management", "public-speaking", "writing", "robotics",
+  "cybersecurity", "mobile", "cloud", "blockchain",
 ];
 
-const availableInterests = [
-  "ai-ethics",
-  "climate-tech",
-  "fintech",
-  "healthcare",
-  "education",
-  "social-impact",
-  "web3",
-  "robotics",
-  "design",
+const INTERESTS = [
+  "web-development", "artificial-intelligence", "climate-tech", "fintech", "healthcare",
+  "education", "social-impact", "design", "research", "robotics", "web3", "career",
 ];
 
-const availableEligibility = [
-  "undergraduate",
-  "graduate",
-  "high-school",
-  "recent-grad",
-  "no-experience",
-  "team-based",
-  "individual",
+const ELIGIBILITY = ["high-school", "undergraduate", "graduate", "recent-grad", "no-experience", "team-based", "individual"];
+
+const LEVELS = [
+  { value: "beginner", label: "Beginner", body: "Just starting out or learning the basics." },
+  { value: "intermediate", label: "Intermediate", body: "Built a few projects, comfortable with fundamentals." },
+  { value: "advanced", label: "Advanced", body: "Shipped substantial work or have internship experience." },
 ];
 
-const experienceLevels = ["beginner", "intermediate", "advanced"];
+function Chip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`btn-shine inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-colors ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:border-slate-300 hover:text-foreground"
+      }`}
+    >
+      {active && <Check className="size-3.5" aria-hidden="true" />}
+      {prettyLabel(label)}
+    </button>
+  );
+}
 
 function OnboardingPage() {
   const navigate = useNavigate();
-  const complete = useServerFn(completeOnboarding);
+  const { trigger, feedback } = useMatchFeedback();
+  const existing = typeof window !== "undefined" ? getLocalProfile() : null;
 
   const [step, setStep] = useState(0);
-  const [displayName, setDisplayName] = useState("");
-  const [bio, setBio] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
-  const [interests, setInterests] = useState<string[]>([]);
-  const [eligibility, setEligibility] = useState<string[]>([]);
-  const [experienceLevel, setExperienceLevel] = useState("beginner");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState<LocalProfile>(existing ?? emptyProfile);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate({ to: "/auth" });
-    });
-  }, [navigate]);
-
-  const toggle = (value: string, list: string[], setter: (v: string[]) => void) => {
-    if (list.includes(value)) setter(list.filter((v) => v !== value));
-    else setter([...list, value]);
-  };
+  const update = (patch: Partial<LocalProfile>) => setForm((f) => ({ ...f, ...patch }));
+  const toggleIn = (key: "skills" | "interests" | "eligibility", value: string) =>
+    setForm((f) => ({
+      ...f,
+      [key]: f[key].includes(value) ? f[key].filter((v) => v !== value) : [...f[key], value],
+    }));
 
   const handleFinish = async () => {
-    setLoading(true);
-    setError(null);
+    setSaving(true);
+    setLocalProfile(form);
     try {
-      await complete({
-        data: {
-          display_name: displayName,
-          bio,
-          skills,
-          interests,
-          eligibility,
-          experience_level: experienceLevel,
-        },
-      });
-      navigate({ to: "/" });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save profile");
-    } finally {
-      setLoading(false);
+      const { opportunities } = await fetchOpportunities();
+      const best = opportunities.reduce((max, o) => Math.max(max, calculateMatchScore(o, form)), 0);
+      trigger(best);
+    } catch {
+      trigger(60);
     }
+    setTimeout(() => navigate({ to: "/feed" }), 1300);
   };
 
   const steps = [
     {
-      title: "Let's build your profile",
-      subtitle: "This powers your personalized opportunity matches.",
+      title: "Let's start with you",
+      subtitle: "Just a name so your feed feels like yours.",
+      valid: true,
       content: (
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-mono text-muted-foreground mb-1.5">DISPLAY NAME</label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-foreground">Your name</span>
             <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full h-11 rounded-lg border border-line bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
+              value={form.display_name}
+              onChange={(e) => update({ display_name: e.target.value })}
               placeholder="Alex Chen"
+              className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
             />
-          </div>
-          <div>
-            <label className="block text-xs font-mono text-muted-foreground mb-1.5">BIO (optional)</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-              placeholder="CS junior passionate about AI and climate tech."
-            />
-          </div>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-foreground">Who are you right now? (optional)</span>
+            <div className="flex flex-wrap gap-2">
+              {ELIGIBILITY.map((e) => (
+                <Chip key={e} label={e} active={form.eligibility.includes(e)} onClick={() => toggleIn("eligibility", e)} />
+              ))}
+            </div>
+          </label>
         </div>
       ),
     },
     {
-      title: "What are your skills?",
-      subtitle: "Select the technologies and domains you already know.",
+      title: "What skills do you have?",
+      subtitle: "Pick everything you're comfortable with — this drives most of your match score.",
+      valid: form.skills.length > 0,
       content: (
         <div className="flex flex-wrap gap-2">
-          {availableSkills.map((skill) => (
-            <button
-              key={skill}
-              onClick={() => toggle(skill, skills, setSkills)}
-              className={`px-3 py-1.5 rounded-md border text-xs font-mono transition ${
-                skills.includes(skill)
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-line text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {skill}
-            </button>
+          {SKILLS.map((s) => (
+            <Chip key={s} label={s} active={form.skills.includes(s)} onClick={() => toggleIn("skills", s)} />
           ))}
         </div>
       ),
     },
     {
-      title: "What are your interests?",
-      subtitle: "Select domains or themes that excite you.",
+      title: "What are you interested in?",
+      subtitle: "Domains you'd love to work in, even if you're not skilled there yet.",
+      valid: form.interests.length > 0,
       content: (
         <div className="flex flex-wrap gap-2">
-          {availableInterests.map((interest) => (
-            <button
-              key={interest}
-              onClick={() => toggle(interest, interests, setInterests)}
-              className={`px-3 py-1.5 rounded-md border text-xs font-mono transition ${
-                interests.includes(interest)
-                  ? "bg-cyan text-ink border-cyan"
-                  : "border-line text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {interest}
-            </button>
+          {INTERESTS.map((i) => (
+            <Chip key={i} label={i} active={form.interests.includes(i)} onClick={() => toggleIn("interests", i)} />
           ))}
         </div>
       ),
     },
     {
-      title: "Who are you eligible as?",
-      subtitle: "Select every option that applies to you.",
+      title: "How much experience do you have?",
+      subtitle: "We use this to avoid recommending things that are out of reach — or too easy.",
+      valid: true,
       content: (
-        <div className="flex flex-wrap gap-2">
-          {availableEligibility.map((item) => (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {LEVELS.map((l) => (
             <button
-              key={item}
-              onClick={() => toggle(item, eligibility, setEligibility)}
-              className={`px-3 py-1.5 rounded-md border text-xs font-mono transition ${
-                eligibility.includes(item)
-                  ? "bg-violet text-ink border-violet"
-                  : "border-line text-muted-foreground hover:text-foreground"
+              key={l.value}
+              type="button"
+              onClick={() => update({ experience_level: l.value })}
+              aria-pressed={form.experience_level === l.value}
+              className={`btn-shine rounded-xl border p-4 text-left transition-colors ${
+                form.experience_level === l.value
+                  ? "border-primary bg-accent"
+                  : "border-border bg-card hover:border-slate-300"
               }`}
             >
-              {item}
-            </button>
-          ))}
-        </div>
-      ),
-    },
-    {
-      title: "Experience level",
-      subtitle: "How would you describe your current depth?",
-      content: (
-        <div className="grid grid-cols-3 gap-3">
-          {experienceLevels.map((level) => (
-            <button
-              key={level}
-              onClick={() => setExperienceLevel(level)}
-              className={`rounded-lg border p-4 text-center text-sm font-display font-semibold transition ${
-                experienceLevel === level
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-line text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {level}
+              <span className="block text-sm font-semibold text-foreground">{l.label}</span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{l.body}</span>
             </button>
           ))}
         </div>
@@ -218,56 +179,70 @@ function OnboardingPage() {
     },
   ];
 
+  const current = steps[step]!;
+  const isLast = step === steps.length - 1;
+
   return (
-    <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-5 py-12">
-      <div className="w-full max-w-xl">
-        <div className="mb-8">
-          <div className="h-1.5 rounded-full bg-line overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-            />
-          </div>
-          <div className="mt-6">
-            <span className="font-mono text-xs text-muted-foreground">
-              STEP {step + 1}/{steps.length}
-            </span>
-            <h1 className="mt-1 font-display font-bold text-3xl tracking-tight text-foreground">
-              {steps[step]!.title}
-            </h1>
-            <p className="mt-1 text-muted-foreground">{steps[step]!.subtitle}</p>
-          </div>
+    <main className="min-h-screen bg-background px-4 py-10 text-foreground sm:px-6 sm:py-16">
+      {feedback}
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-300"
+            style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+          />
         </div>
 
-        <div className="rounded-xl border border-line bg-card p-6">
-          {steps[step]!.content}
-          {error && <p className="mt-4 text-sm text-primary">{error}</p>}
-          <div className="mt-8 flex justify-between">
+        <div className="mt-6">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Step {step + 1} of {steps.length}
+          </span>
+          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{current.title}</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">{current.subtitle}</p>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-border bg-card p-5 sm:p-6">
+          <div className="animate-rise-in" key={step}>
+            {current.content}
+          </div>
+
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:flex sm:justify-between">
             <button
+              type="button"
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0}
-              className="h-11 px-5 rounded-lg border border-line text-sm font-display font-medium text-muted-foreground hover:text-foreground disabled:opacity-30"
+              className="btn-shine inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-border px-5 text-sm font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-40"
             >
+              <ArrowLeft className="size-4" aria-hidden="true" />
               Back
             </button>
-            {step < steps.length - 1 ? (
+            {isLast ? (
               <button
-                onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
-                className="h-11 px-6 rounded-lg bg-primary text-primary-foreground font-display font-semibold hover:brightness-110"
+                type="button"
+                onClick={handleFinish}
+                disabled={saving}
+                className="btn-shine inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
-                Next
+                <Sparkles className="size-4" aria-hidden="true" />
+                {saving ? "Matching…" : "Show my matches"}
               </button>
             ) : (
               <button
-                onClick={handleFinish}
-                disabled={loading}
-                className="h-11 px-6 rounded-lg bg-primary text-primary-foreground font-display font-semibold hover:brightness-110 disabled:opacity-50"
+                type="button"
+                onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
+                disabled={!current.valid}
+                className="btn-shine inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
               >
-                {loading ? "Saving..." : "Finish"}
+                Next
+                <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             )}
           </div>
         </div>
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Your answers are stored on this device — no account required.
+        </p>
       </div>
     </main>
   );
