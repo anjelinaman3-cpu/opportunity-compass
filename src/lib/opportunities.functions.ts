@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { calculateMatchScore, type OpportunityWithMatch } from "./matching";
+import { calculateMatchScore } from "./matching";
 
 function createPublishableClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
@@ -64,7 +64,7 @@ export const getRecommendedOpportunities = createServerFn({ method: "GET" })
 
     const savedIds = new Set((saved ?? []).map((s) => s.opportunity_id));
 
-    const withScores: OpportunityWithMatch[] = opportunities.map((opp) => ({
+    const withScores = opportunities.map((opp) => ({
       ...opp,
       match_score: calculateMatchScore(opp, profile),
       saved: savedIds.has(opp.id),
