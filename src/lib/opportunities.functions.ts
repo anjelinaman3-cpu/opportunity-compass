@@ -64,7 +64,7 @@ export const getRecommendedOpportunities = createServerFn({ method: "GET" })
 
     const savedIds = new Set((saved ?? []).map((s) => s.opportunity_id));
 
-    const withScores: OpportunityWithMatch[] = opportunities.map((opp) => ({
+    const withScores = opportunities.map((opp) => ({
       ...opp,
       match_score: calculateMatchScore(opp, profile),
       saved: savedIds.has(opp.id),
